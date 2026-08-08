@@ -1,0 +1,708 @@
+// ==========================================
+// PRISMA CONFIGURATION & ENUMS
+// ==========================================
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum EntityStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum HospitalType {
+  GOVERNMENT
+  PRIVATE
+}
+
+enum SpecialityType {
+  EYE
+  DENTAL
+  AYURVEDIC
+  HOMEOPATHY
+  ALLOPATHY
+  GENERAL
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum StaffType {
+  RECEPTIONIST
+  LAB_TECHNICIAN
+  AMBULANCE_DRIVER
+  ADMIN
+  OTHER
+}
+
+enum AppointmentType {
+  WALK_IN
+  ONLINE
+  EMERGENCY
+  TELECONSULTATION
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CHECKED_IN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum QueueStatus {
+  WAITING
+  CALLED
+  IN_CONSULTATION
+  SKIPPED
+  RECALLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  NET_BANKING
+  INSURANCE
+}
+
+enum TestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ==========================================
+// 1. LOCATION MANAGEMENT
+// ==========================================
+
+model State {
+  id        String   @id @default(uuid())
+  name      String   @unique @db.VarChar(100)
+  code      String   @unique @db.VarChar(10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cities City[]
+
+  @@map("states")
+}
+
+model City {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  stateId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  state     State      @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  hospitals Hospital[]
+
+  @@unique([name, stateId])
+  @@map("cities")
+}
+
+// ==========================================
+// 2. AUTHENTICATION & RBAC
+// ==========================================
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(50) // PATIENT, RECEPTIONIST, DOCTOR, LAB_TECHNICIAN, HOSPITAL_ADMIN, SUPER_ADMIN
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  slug        String   @unique @db.VarChar(100) // e.g., "appointments:create", "reports:upload"
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id           String       @id @default(uuid())
+  roleId       String
+  hospitalId   String?
+  email        String       @unique @db.VarChar(255)
+  phoneNumber  String       @unique @db.VarChar(15)
+  passwordHash String       @db.VarChar(255)
+  fcmToken     String?      @db.Text
+  status       EntityStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  role              Role           @relation(fields: [roleId], references: [id])
+  hospital          Hospital?      @relation(fields: [hospitalId], references: [id], onDelete: SetNull)
+  patient           Patient?
+  doctor            Doctor?
+  staff             Staff?
+  sessions          Session[]
+  otps              Otp[]
+  auditLogs         AuditLog[]
+  feedbacks         Feedback[]
+  notifications     Notification[] @relation("RecipientUser")
+  sentNotifications Notification[] @relation("SenderUser")
+  supportTickets SupportTicket[] @relation("UserSupportTickets")
+
+  @@index([email, phoneNumber])
+  @@index([hospitalId])
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique @db.Text
+  ipAddress    String?  @db.VarChar(45)
+  userAgent    String?  @db.Text
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Otp {
+  id          String   @id @default(uuid())
+  userId      String?
+  phoneNumber String   @db.VarChar(15)
+  otpCode     String   @db.VarChar(6)
+  isUsed      Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([phoneNumber, otpCode])
+  @@map("otps")
+}
+
+// ==========================================
+// 3. MULTI-HOSPITAL CORE INFRASTRUCTURE
+// ==========================================
+
+model SubscriptionPlan {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(100)
+  price        Decimal  @db.Decimal(10, 2)
+  durationDays Int
+  maxDoctors   Int
+  maxStaff     Int
+  features     Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id         String   @id @default(uuid())
+  hospitalId String   @unique
+  planId     String
+  startDate  DateTime
+  endDate    DateTime
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  hospital Hospital         @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Hospital {
+  id           String         @id @default(uuid())
+  cityId       String
+  name         String         @db.VarChar(255)
+  code         String         @unique @db.VarChar(20)
+  type         HospitalType
+  speciality   SpecialityType
+  address      String         @db.Text
+  latitude     Float
+  longitude    Float
+  mapConfig    Json? // Stores floor layout vectors/JSON for indoor navigation
+  contactEmail String         @db.VarChar(255)
+  contactPhone String         @db.VarChar(15)
+  status       EntityStatus   @default(ACTIVE)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  city          City                   @relation(fields: [cityId], references: [id])
+  subscription  Subscription?
+  users         User[]
+  departments   Department[]
+  rooms         Room[]
+  counters      Counter[]
+  doctors       Doctor[]
+  staff         Staff[]
+  appointments  Appointment[]
+  queues        Queue[]
+  ambulances    Ambulance[]
+  announcements HospitalAnnouncement[]
+  kiosks        Esp32Kiosk[]
+
+  @@index([cityId, type, speciality])
+  @@map("hospitals")
+}
+
+model Department {
+  id          String       @id @default(uuid())
+  hospitalId  String
+  name        String       @db.VarChar(100)
+  code        String       @db.VarChar(20)
+  description String?      @db.Text
+  status      EntityStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  hospital     Hospital      @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  doctors      Doctor[]
+  rooms        Room[]
+  appointments Appointment[]
+  queues       Queue[]
+
+  @@unique([hospitalId, code])
+  @@map("departments")
+}
+
+model Room {
+  id           String       @id @default(uuid())
+  hospitalId   String
+  departmentId String
+  roomNumber   String       @db.VarChar(20)
+  floor        String       @db.VarChar(20)
+  status       EntityStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  hospital   Hospital   @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  doctors    Doctor[]
+  queues     Queue[]
+
+  @@unique([hospitalId, roomNumber])
+  @@map("rooms")
+}
+
+model Counter {
+  id            String       @id @default(uuid())
+  hospitalId    String
+  counterNumber String       @db.VarChar(20)
+  purpose       String       @db.VarChar(100) // Billing, Registration, General Check-in
+  status        EntityStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  queues   Queue[]
+
+  @@unique([hospitalId, counterNumber])
+  @@map("counters")
+}
+
+// ==========================================
+// 4. ACTORS & PROFILES
+// ==========================================
+
+model Patient {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  uhid                  String   @unique @db.VarChar(30) // Unique Health ID
+  firstName             String   @db.VarChar(100)
+  lastName              String   @db.VarChar(100)
+  gender                Gender
+  dateOfBirth           DateTime @db.Date
+  bloodGroup            String?  @db.VarChar(5)
+  address               String?  @db.Text
+  emergencyContactName  String?  @db.VarChar(100)
+  emergencyContactPhone String?  @db.VarChar(15)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyMembers    FamilyMember[]   @relation("PrimaryPatient")
+  asFamilyMember   FamilyMember[]   @relation("RelatedPatient")
+  appointments     Appointment[]
+  queues           Queue[]
+  medicalHistories MedicalHistory[]
+  prescriptions    Prescription[]
+  reports          Report[]
+  feedbacks        Feedback[]
+  payments         Payment[]
+
+  @@map("patients")
+}
+
+model Doctor {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  hospitalId      String
+  departmentId    String
+  roomId          String?
+  licenseNumber   String   @unique @db.VarChar(100)
+  firstName       String   @db.VarChar(100)
+  lastName        String   @db.VarChar(100)
+  qualification   String   @db.VarChar(255)
+  consultationFee Decimal  @db.Decimal(10, 2)
+  isAvailable     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hospital      Hospital       @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department    Department     @relation(fields: [departmentId], references: [id])
+  room          Room?          @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  appointments  Appointment[]
+  queues        Queue[]
+  prescriptions Prescription[]
+  reports       Report[]
+
+  @@map("doctors")
+}
+
+model Staff {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  hospitalId String
+  type       StaffType
+  firstName  String    @db.VarChar(100)
+  lastName   String    @db.VarChar(100)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  reports  Report[] @relation("LabTechReports")
+
+  @@map("staff")
+}
+
+model FamilyMember {
+  id               String   @id @default(uuid())
+  primaryPatientId String
+  relatedPatientId String?
+  fullName         String   @db.VarChar(200)
+  relationship     String   @db.VarChar(50)
+  gender           Gender
+  dateOfBirth      DateTime @db.Date
+  createdAt        DateTime @default(now())
+
+  primaryPatient Patient  @relation("PrimaryPatient", fields: [primaryPatientId], references: [id], onDelete: Cascade)
+  relatedPatient Patient? @relation("RelatedPatient", fields: [relatedPatientId], references: [id], onDelete: SetNull)
+
+  @@map("family_members")
+}
+
+// ==========================================
+// 5. APPOINTMENT & REALTIME QUEUE SYSTEM
+// ==========================================
+
+model Appointment {
+  id              String            @id @default(uuid())
+  hospitalId      String
+  departmentId    String
+  doctorId        String
+  patientId       String
+  appointmentType AppointmentType
+  status          AppointmentStatus @default(BOOKED)
+  appointmentDate DateTime          @db.Date
+  slotTime        DateTime
+  qrCodeData      String            @unique @db.Text
+  tokenNumber     String            @db.VarChar(20)
+  symptoms        String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  hospital      Hospital       @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department    Department     @relation(fields: [departmentId], references: [id])
+  doctor        Doctor         @relation(fields: [doctorId], references: [id])
+  patient       Patient        @relation(fields: [patientId], references: [id])
+  queue         Queue?
+  payments      Payment[]
+  prescriptions Prescription[]
+  reports       Report[]
+
+  @@index([hospitalId, appointmentDate, status])
+  @@map("appointments")
+}
+
+model Queue {
+  id                   String      @id @default(uuid())
+  hospitalId           String
+  departmentId         String
+  roomId               String?
+  counterId            String?
+  appointmentId        String      @unique
+  patientId            String
+  doctorId             String
+  tokenNumber          Int
+  status               QueueStatus @default(WAITING)
+  priorityLevel        Int         @default(0) // Higher value = emergency/priority
+  estimatedWaitMinutes Int         @default(0)
+  checkedInAt          DateTime?
+  calledAt             DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  hospital    Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department  Department  @relation(fields: [departmentId], references: [id])
+  room        Room?       @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  counter     Counter?    @relation(fields: [counterId], references: [id], onDelete: SetNull)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient     Patient     @relation(fields: [patientId], references: [id])
+  doctor      Doctor      @relation(fields: [doctorId], references: [id])
+
+  @@index([hospitalId, doctorId, status, priorityLevel])
+  @@map("queues")
+}
+
+// ==========================================
+// 6. CLINICAL OPERATIONS
+// ==========================================
+
+model MedicalHistory {
+  id         String   @id @default(uuid())
+  patientId  String
+  condition  String   @db.VarChar(255)
+  diagnosis  String   @db.Text
+  allergies  String?  @db.Text
+  surgeries  String?  @db.Text
+  recordedAt DateTime @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@map("medical_histories")
+}
+
+model Prescription {
+  id            String   @id @default(uuid())
+  appointmentId String
+  patientId     String
+  doctorId      String
+  diagnosis     String   @db.Text
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  appointment Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient     Patient            @relation(fields: [patientId], references: [id])
+  doctor      Doctor             @relation(fields: [doctorId], references: [id])
+  items       PrescriptionItem[]
+
+  @@map("prescriptions")
+}
+
+model PrescriptionItem {
+  id             String  @id @default(uuid())
+  prescriptionId String
+  medicineName   String  @db.VarChar(255)
+  dosage         String  @db.VarChar(100) // e.g., "500mg"
+  frequency      String  @db.VarChar(100) // e.g., "1-0-1 after meals"
+  durationDays   Int
+  instructions   String? @db.Text
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@map("prescription_items")
+}
+
+model Report {
+  id            String     @id @default(uuid())
+  appointmentId String?
+  patientId     String
+  doctorId      String
+  labTechId     String?
+  title         String     @db.VarChar(255)
+  testType      String     @db.VarChar(100)
+  status        TestStatus @default(PENDING)
+  fileUrl       String?    @db.Text // Cloudinary PDF URL
+  notes         String?    @db.Text
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  patient     Patient      @relation(fields: [patientId], references: [id])
+  doctor      Doctor       @relation(fields: [doctorId], references: [id])
+  labTech     Staff?       @relation("LabTechReports", fields: [labTechId], references: [id], onDelete: SetNull)
+
+  @@map("reports")
+}
+
+// ==========================================
+// 7. PAYMENTS, COMMUNICATIONS & IOT
+// ==========================================
+
+model Payment {
+  id            String        @id @default(uuid())
+  appointmentId String
+  patientId     String
+  amount        Decimal       @db.Decimal(10, 2)
+  currency      String        @default("INR") @db.VarChar(10)
+  status        PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod
+  transactionId String?       @unique @db.VarChar(255)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  patient     Patient     @relation(fields: [patientId], references: [id])
+
+  @@map("payments")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  senderId  String?
+  title     String   @db.VarChar(255)
+  body      String   @db.Text
+  isRead    Boolean  @default(false)
+  metaData  Json? // Optional payload for router navigation
+  createdAt DateTime @default(now())
+
+  user   User  @relation("RecipientUser", fields: [userId], references: [id], onDelete: Cascade)
+  sender User? @relation("SenderUser", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+model Feedback {
+  id         String   @id @default(uuid())
+  hospitalId String
+  patientId  String
+  userId     String
+  rating     Int      @db.SmallInt // 1-5 scale
+  comments   String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("feedbacks")
+}
+
+model Ambulance {
+  id            String       @id @default(uuid())
+  hospitalId    String
+  vehicleNumber String       @unique @db.VarChar(50)
+  driverName    String       @db.VarChar(100)
+  driverPhone   String       @db.VarChar(15)
+  isAvailable   Boolean      @default(true)
+  currentLat    Float?
+  currentLong   Float?
+  status        EntityStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@map("ambulances")
+}
+
+model HospitalAnnouncement {
+  id         String   @id @default(uuid())
+  hospitalId String
+  title      String   @db.VarChar(255)
+  message    String   @db.Text
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@map("hospital_announcements")
+}
+
+model Esp32Kiosk {
+  id         String   @id @default(uuid())
+  hospitalId String
+  deviceMac  String   @unique @db.VarChar(17) // MAC address: XX:XX:XX:XX:XX:XX
+  location   String   @db.VarChar(100) // e.g., "Main Gate Reception"
+  secretKey  String   @db.VarChar(255) // Hashed API key for HMAC verification
+  isActive   Boolean  @default(true)
+  lastPingAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@map("esp32_kiosks")
+}
+
+// ==========================================
+// 8. AUDIT LOGS FOR SUPPORT TICKETS & SYSTEM
+// ==========================================
+
+model SupportTicket {
+  id          String   @id @default(uuid())
+  userId      String
+  subject     String   @db.VarChar(255)
+  description String   @db.Text
+  status      String   @default("OPEN") @db.VarChar(50)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation("UserSupportTickets", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("support_tickets")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String   @db.VarChar(100)
+  entity    String   @db.VarChar(100)
+  entityId  String   @db.VarChar(255)
+  metaData  Json?
+  ipAddress String?  @db.VarChar(45)
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
