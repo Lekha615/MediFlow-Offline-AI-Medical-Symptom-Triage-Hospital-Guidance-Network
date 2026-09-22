@@ -38,7 +38,23 @@ export class HospitalController {
 
   static async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await HospitalService.list(req.query as any);
+      const page = Math.max(1, Number(req.query.page) || 1);
+      const limit = Math.max(1, Number(req.query.limit) || 10);
+      const search = typeof req.query.search === "string" ? req.query.search : undefined;
+      const cityId = typeof req.query.cityId === "string" ? req.query.cityId : undefined;
+      const type = typeof req.query.type === "string" ? (req.query.type as any) : undefined;
+      const speciality = typeof req.query.speciality === "string" ? (req.query.speciality as any) : undefined;
+      const status = typeof req.query.status === "string" ? (req.query.status as any) : undefined;
+
+      const result = await HospitalService.list({
+        page,
+        limit,
+        search,
+        cityId,
+        type,
+        speciality,
+        status,
+      });
       res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);

@@ -123,7 +123,9 @@ export class DoctorService {
     search?: string;
     available?: "true" | "false";
   }) {
-    const { page, limit, hospitalId, departmentId, search, available } = params;
+    const page = Math.max(1, Number(params.page) || 1);
+    const limit = Math.max(1, Number(params.limit) || 10);
+    const { hospitalId, departmentId, search, available } = params;
     const where: Prisma.DoctorWhereInput = {
       ...(hospitalId ? { hospitalId } : {}),
       ...(departmentId ? { departmentId } : {}),

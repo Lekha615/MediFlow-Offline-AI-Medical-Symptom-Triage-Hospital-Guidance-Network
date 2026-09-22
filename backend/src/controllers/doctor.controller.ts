@@ -17,7 +17,21 @@ export class DoctorController {
 
   static async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await DoctorService.list(req.query as any);
+      const page = Math.max(1, Number(req.query.page) || 1);
+      const limit = Math.max(1, Number(req.query.limit) || 10);
+      const hospitalId = typeof req.query.hospitalId === "string" ? req.query.hospitalId : undefined;
+      const departmentId = typeof req.query.departmentId === "string" ? req.query.departmentId : undefined;
+      const search = typeof req.query.search === "string" ? req.query.search : undefined;
+      const available = typeof req.query.available === "string" ? (req.query.available as any) : undefined;
+
+      const result = await DoctorService.list({
+        page,
+        limit,
+        hospitalId,
+        departmentId,
+        search,
+        available,
+      });
       res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);

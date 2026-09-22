@@ -58,7 +58,9 @@ export class HospitalService {
     speciality?: "EYE" | "DENTAL" | "AYURVEDIC" | "HOMEOPATHY" | "ALLOPATHY" | "GENERAL";
     status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "DELETED";
   }) {
-    const { page, limit, search, cityId, type, speciality, status } = params;
+    const page = Math.max(1, Number(params.page) || 1);
+    const limit = Math.max(1, Number(params.limit) || 10);
+    const { search, cityId, type, speciality, status } = params;
     const where: Prisma.HospitalWhereInput = {
       status: status ?? { not: EntityStatus.DELETED },
       ...(cityId ? { cityId } : {}),
