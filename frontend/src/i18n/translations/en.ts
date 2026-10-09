@@ -77,6 +77,7 @@ export const en = {
     mainMenu: "MAIN MENU",
     staffMenu: "STAFF MENU",
     dashboard: "Dashboard",
+    medicalRecords: "Medical Records",
     symptomTriage: "Symptom Triage",
     hospitalGuidance: "Hospital Guidance",
     myAppointments: "My Appointments",

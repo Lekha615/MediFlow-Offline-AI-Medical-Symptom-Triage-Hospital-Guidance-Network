@@ -9,6 +9,7 @@ import {
   CalendarCheck,
   UserCheck,
   Activity,
+  FileText,
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -44,6 +45,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       roles: ["SUPER_ADMIN", "HOSPITAL_ADMIN", "DOCTOR", "RECEPTIONIST", "LAB_TECHNICIAN", "PATIENT"],
     },
     // PATIENT ONLY MODULES
+    {
+      key: "navigation.medicalRecords",
+      label: "Medical Records",
+      path: "/medical-records",
+      icon: <FileText className="w-5 h-5" />,
+      roles: ["PATIENT"],
+    },
     {
       key: "navigation.symptomTriage",
       label: "Symptom Triage",

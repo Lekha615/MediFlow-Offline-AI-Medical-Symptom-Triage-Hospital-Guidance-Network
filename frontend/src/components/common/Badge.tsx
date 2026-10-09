@@ -13,6 +13,7 @@ export type BadgeVariant =
   | "doctor"
   | "admin"
   | "receptionist"
+  | "warning"
   | "neutral";
 
 export interface BadgeProps {
@@ -35,6 +36,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = "neutral", children, cla
     doctor: "bg-indigo-100 text-indigo-800 border-indigo-200",
     admin: "bg-violet-100 text-violet-800 border-violet-200",
     receptionist: "bg-orange-100 text-orange-800 border-orange-200",
+    warning: "bg-amber-100 text-amber-800 border-amber-200",
     neutral: "bg-slate-100 text-slate-800 border-slate-200",
   };
 

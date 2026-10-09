@@ -9,6 +9,7 @@ import { Pagination } from "../../components/common/Pagination";
 import { Spinner } from "../../components/common/Spinner";
 import { EmptyState } from "../../components/common/EmptyState";
 import { Modal } from "../../components/common/Modal";
+import { PatientMedicalHistorySection } from "../../components/documents/PatientMedicalHistorySection";
 
 export const PatientsListPage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
@@ -209,6 +210,14 @@ export const PatientsListPage: React.FC = () => {
                   </div>
                 );
               })()}
+            </div>
+            {/* Medical Documents & AI History Tab */}
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <PatientMedicalHistorySection
+                patientId={selectedPatient.id}
+                patientName={`${selectedPatient.firstName || ""} ${selectedPatient.lastName || ""}`}
+                isDoctorView={true}
+              />
             </div>
           </div>
         </Modal>

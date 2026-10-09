@@ -79,6 +79,7 @@ export const gu: typeof en = {
     mainMenu: "મુખ્ય મેનુ",
     staffMenu: "સ્ટાફ મેનુ",
     dashboard: "ડેશબોર્ડ",
+    medicalRecords: "મેડિકલ રેકોર્ડ્સ",
     symptomTriage: "લક્ષણ ટ્રાયજ",
     hospitalGuidance: "હોસ્પિટલ માર્ગદર્શન",
     myAppointments: "મારી એપોઇન્ટમેન્ટ્સ",

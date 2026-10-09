@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Stethoscope, UserCheck, Clock, CheckCircle2, PhoneCall, AlertCircle } from "lucide-react";
+import { Stethoscope, UserCheck, Clock, CheckCircle2, PhoneCall, AlertCircle, FileText } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { doctorApi } from "../../api/doctorApi";
 import { queueApi } from "../../api/queueApi";
 import { Button } from "../../components/common/Button";
 import { Badge } from "../../components/common/Badge";
 import { Spinner } from "../../components/common/Spinner";
+import { PatientMedicalHistorySection } from "../../components/documents/PatientMedicalHistorySection";
 
 export const DoctorDashboard: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedPatientForDocs, setSelectedPatientForDocs] = useState<string | null>(null);
 
   const doctorId = user?.doctor?.id || user?.doctor?.userId || (user as any)?.doctorId;
 
@@ -146,6 +148,14 @@ export const DoctorDashboard: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
+                  leftIcon={<FileText className="w-4 h-4 text-teal-600" />}
+                  onClick={() => setSelectedPatientForDocs(nextPatient.patientId || nextPatient.patient?.id)}
+                >
+                  Medical History & Documents
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   leftIcon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
                   onClick={() => setStatusMutation.mutate({ id: nextPatient.id, status: "COMPLETED" })}
                 >
@@ -193,6 +203,17 @@ export const DoctorDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Embedded Patient Medical History Section for Doctor */}
+      {(selectedPatientForDocs || nextPatient?.patientId || nextPatient?.patient?.id) && (
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+          <PatientMedicalHistorySection
+            patientId={selectedPatientForDocs || nextPatient?.patientId || nextPatient?.patient?.id}
+            patientName={nextPatient?.patient ? `${nextPatient.patient.firstName || ""} ${nextPatient.patient.lastName || ""}` : undefined}
+            isDoctorView={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

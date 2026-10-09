@@ -10,6 +10,7 @@ import {
   Stethoscope,
   Building2,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { queueApi } from "../../api/queueApi";
@@ -79,7 +80,27 @@ export const PatientDashboard: React.FC = () => {
       </div>
 
       {/* Quick Care Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Link
+          to="/medical-records"
+          className="bg-gradient-to-br from-indigo-500/10 to-teal-500/10 dark:from-indigo-950/40 dark:to-teal-950/40 p-5 rounded-2xl border border-indigo-500/20 shadow-xs hover:shadow-md transition-all flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-xl bg-indigo-600 text-white shadow-sm">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
+                Medical Records & AI
+              </h3>
+              <p className="text-xs text-slate-500">
+                Upload prescriptions, lab reports & view OCR timeline
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+        </Link>
+
         <Link
           to="/triage"
           className="bg-gradient-to-br from-teal-500/10 to-indigo-500/10 dark:from-teal-950/40 dark:to-indigo-950/40 p-5 rounded-2xl border border-teal-500/20 shadow-xs hover:shadow-md transition-all flex items-center justify-between group"
@@ -93,7 +114,7 @@ export const PatientDashboard: React.FC = () => {
                 AI Symptom Triage
               </h3>
               <p className="text-xs text-slate-500">
-                Check symptoms, assess urgency, and get guidance
+                Check symptoms, assess urgency & get guidance
               </p>
             </div>
           </div>
@@ -113,7 +134,7 @@ export const PatientDashboard: React.FC = () => {
                 Hospital Guidance
               </h3>
               <p className="text-xs text-slate-500">
-                Discover hospitals, specialists, and departments
+                Discover hospitals, specialists & departments
               </p>
             </div>
           </div>

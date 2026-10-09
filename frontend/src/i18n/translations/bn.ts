@@ -79,6 +79,7 @@ export const bn: typeof en = {
     mainMenu: "প্রধান মেনু",
     staffMenu: "কর্মী মেনু",
     dashboard: "ড্যাশবোর্ড",
+    medicalRecords: "মেডিকেল রেকর্ড",
     symptomTriage: "লক্ষণ ট্রায়াজ",
     hospitalGuidance: "হাসপাতাল নির্দেশিকা",
     myAppointments: "আমার অ্যাপয়েন্টমেন্ট",

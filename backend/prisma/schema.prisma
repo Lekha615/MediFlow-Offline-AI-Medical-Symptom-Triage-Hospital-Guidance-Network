@@ -93,6 +93,24 @@ enum TestStatus {
   CANCELLED
 }
 
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  NEEDS_REVIEW
+  VERIFIED_BY_PATIENT
+  DOCTOR_VERIFIED
+  FAILED
+}
+
+enum DocumentType {
+  PRESCRIPTION
+  LAB_REPORT
+  DISCHARGE_SUMMARY
+  MEDICAL_REPORT
+  OTHER
+}
+
 // ==========================================
 // 1. LOCATION MANAGEMENT
 // ==========================================
@@ -185,6 +203,8 @@ model User {
   notifications     Notification[] @relation("RecipientUser")
   sentNotifications Notification[] @relation("SenderUser")
   supportTickets SupportTicket[] @relation("UserSupportTickets")
+  uploadedDocuments MedicalDocument[] @relation("UploadedDocuments")
+  verifiedDocuments MedicalDocument[] @relation("VerifiedDocuments")
 
   @@index([email, phoneNumber])
   @@index([hospitalId])
@@ -375,6 +395,7 @@ model Patient {
   reports          Report[]
   feedbacks        Feedback[]
   payments         Payment[]
+  medicalDocuments MedicalDocument[]
 
   @@map("patients")
 }
@@ -705,4 +726,39 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+// ==========================================
+// 9. AI MEDICAL DOCUMENT INTELLIGENCE
+// ==========================================
+
+model MedicalDocument {
+  id             String         @id @default(uuid())
+  patientId      String
+  uploadedById   String
+  documentType   DocumentType   @default(OTHER)
+  title          String         @db.VarChar(255)
+  fileName       String         @db.VarChar(255)
+  fileUrl        String         @db.Text
+  mimeType       String         @db.VarChar(100)
+  fileSize       Int?
+  documentDate   DateTime?
+  status         DocumentStatus @default(PROCESSING)
+  extractedData  Json?
+  summary        String?        @db.Text
+  disclaimer     String?        @db.Text
+  isVerified     Boolean        @default(false)
+  verifiedById   String?
+  verifiedAt     DateTime?
+  patientNotes   String?        @db.Text
+  doctorNotes    String?        @db.Text
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  patient    Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation("UploadedDocuments", fields: [uploadedById], references: [id], onDelete: Cascade)
+  verifiedBy User?   @relation("VerifiedDocuments", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  @@index([patientId, documentType, status])
+  @@map("medical_documents")
 }

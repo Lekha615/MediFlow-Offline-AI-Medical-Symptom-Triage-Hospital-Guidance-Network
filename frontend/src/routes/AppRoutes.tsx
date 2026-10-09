@@ -31,6 +31,7 @@ import { QueueManagementPage } from "../pages/queue/QueueManagementPage";
 import { PatientQueuePage } from "../pages/queue/PatientQueuePage";
 import { AppointmentsPage } from "../pages/appointments/AppointmentsPage";
 import { PatientProfilePage } from "../pages/profile/PatientProfilePage";
+import { MedicalRecordsPage } from "../pages/patients/MedicalRecordsPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 
 import { ErrorBoundary } from "../components/common/ErrorBoundary";
@@ -162,6 +163,20 @@ export const AppRoutes: React.FC = () => {
             <DashboardLayout>
               <ErrorBoundary fallbackTitle="Patient Dashboard could not be loaded.">
                 <PatientDashboard />
+              </ErrorBoundary>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Patient Medical Records & Document Intelligence */}
+      <Route
+        path="/medical-records"
+        element={
+          <ProtectedRoute allowedRoles={["PATIENT"]}>
+            <DashboardLayout>
+              <ErrorBoundary fallbackTitle="Medical Records could not be loaded.">
+                <MedicalRecordsPage />
               </ErrorBoundary>
             </DashboardLayout>
           </ProtectedRoute>
