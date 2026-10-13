@@ -19,6 +19,7 @@ export const hospitalCreateSchema = z.object({
   mapConfig: z.record(z.string(), z.unknown()).optional(),
   contactEmail: z.string().email().max(255),
   contactPhone: z.string().regex(/^[0-9]{10,15}$/),
+  isVerified: z.boolean().optional().default(false),
 });
 
 export const hospitalUpdateSchema = hospitalCreateSchema.partial();
@@ -27,12 +28,14 @@ export const hospitalListSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().trim().optional(),
+  stateId: z.string().uuid().optional(),
   cityId: z.string().uuid().optional(),
   type: z.enum(["GOVERNMENT", "PRIVATE"]).optional(),
   speciality: z
     .enum(["EYE", "DENTAL", "AYURVEDIC", "HOMEOPATHY", "ALLOPATHY", "GENERAL"])
     .optional(),
   status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED", "DELETED"]).optional(),
+  isVerified: z.enum(["true", "false"]).optional(),
 });
 
 export const idParamSchema = z.object({

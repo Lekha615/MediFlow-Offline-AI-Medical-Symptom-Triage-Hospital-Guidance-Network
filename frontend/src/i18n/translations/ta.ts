@@ -79,6 +79,7 @@ export const ta: typeof en = {
     mainMenu: "முதன்மை மெனு",
     staffMenu: "பணியாளர் மெனு",
     dashboard: "டாஷ்போர்டு",
+    medicalRecords: "மருத்துவ பதிவுகள்",
     symptomTriage: "அறிகுறி பகுப்பாய்வு",
     hospitalGuidance: "மருத்துவமனை வழிகாட்டல்",
     myAppointments: "என் சந்திப்புகள்",

@@ -79,6 +79,7 @@ export const te: typeof en = {
     mainMenu: "ముఖ్యమైన మెనూ",
     staffMenu: "స్టాఫ్ మెనూ",
     dashboard: "డాష్‌బోర్డ్",
+    medicalRecords: "వైద్య రికార్డులు",
     symptomTriage: "లక్షణాల ట్రయాజ్",
     hospitalGuidance: "ఆసుపత్రి మార్గదర్శకత్వం",
     myAppointments: "నా అపాయింట్‌మెంట్‌లు",

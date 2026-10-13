@@ -79,6 +79,7 @@ export const hi: typeof en = {
     mainMenu: "मुख्य मेनू",
     staffMenu: "स्टाफ मेनू",
     dashboard: "डैशबोर्ड",
+    medicalRecords: "मेडिकल रिकॉर्ड",
     symptomTriage: "लक्षण ट्राइएज",
     hospitalGuidance: "अस्पताल मार्गदर्शन",
     myAppointments: "मेरे अपॉइंटमेंट",

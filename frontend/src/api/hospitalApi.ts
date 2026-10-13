@@ -5,20 +5,43 @@ import {
   HospitalUpdatePayload,
   HospitalListQuery,
   City,
+  State,
 } from "../types/hospital";
 import { ApiResponse, PaginatedResult } from "../types/api";
 
 export const hospitalApi = {
-  list: async (query?: HospitalListQuery): Promise<PaginatedResult<Hospital>> => {
-    const response = await apiClient.get<ApiResponse<PaginatedResult<Hospital>>>(
+  list: async (query?: HospitalListQuery): Promise<PaginatedResult<Hospital> & { items: Hospital[] }> => {
+    const response = await apiClient.get<ApiResponse<any>>(
       "/hospitals",
       { params: query }
     );
     if (response.data.data) {
-      return response.data.data;
+      const resData = response.data.data;
+      const items: Hospital[] =
+        resData.data && Array.isArray(resData.data)
+          ? resData.data
+          : resData.items && Array.isArray(resData.items)
+          ? resData.items
+          : Array.isArray(resData)
+          ? resData
+          : [];
+
+      const pagination = resData.pagination || {
+        page: 1,
+        limit: 20,
+        total: items.length,
+        totalPages: 1,
+      };
+
+      return {
+        data: items,
+        items,
+        pagination,
+      };
     }
     return {
       data: [],
+      items: [],
       pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
     };
   },
@@ -59,13 +82,33 @@ export const hospitalApi = {
     await apiClient.delete(`/hospitals/${id}`);
   },
 
-  getCities: async (): Promise<City[]> => {
-    // Helper to get cities if available or provide standard fallback list
+  getStates: async (): Promise<State[]> => {
     try {
-      const response = await apiClient.get<ApiResponse<City[]>>("/cities");
+      const response = await apiClient.get<ApiResponse<State[]>>("/states");
       return response.data.data || [];
     } catch {
       return [];
     }
+  },
+
+  getCities: async (stateId?: string): Promise<City[]> => {
+    try {
+      const response = await apiClient.get<ApiResponse<City[]>>("/cities", {
+        params: stateId ? { stateId } : undefined,
+      });
+      return response.data.data || [];
+    } catch {
+      return [];
+    }
+  },
+
+  importCsv: async (csvContent: string): Promise<any> => {
+    const response = await apiClient.post<ApiResponse<any>>("/hospitals/import", {
+      csvContent,
+    });
+    if (response.data.data) {
+      return response.data.data;
+    }
+    throw new Error(response.data.message || "Failed to import CSV");
   },
 };

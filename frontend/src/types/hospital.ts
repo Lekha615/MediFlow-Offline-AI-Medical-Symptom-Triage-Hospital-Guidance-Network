@@ -9,6 +9,15 @@ export type SpecialityType =
   | "ALLOPATHY"
   | "GENERAL";
 
+export interface State {
+  id: string;
+  name: string;
+  code: string;
+  _count?: {
+    cities?: number;
+  };
+}
+
 export interface City {
   id: string;
   name: string;
@@ -17,6 +26,9 @@ export interface City {
     id: string;
     name: string;
     code: string;
+  };
+  _count?: {
+    hospitals?: number;
   };
 }
 
@@ -33,10 +45,17 @@ export interface Hospital {
   contactEmail: string;
   contactPhone: string;
   status: EntityStatus;
+  isVerified?: boolean;
   mapConfig?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
   city?: City;
+  departments?: Array<{
+    id: string;
+    name: string;
+    code: string;
+  }>;
+  doctors?: any[];
   _count?: {
     doctors?: number;
     departments?: number;
@@ -55,6 +74,7 @@ export interface HospitalCreatePayload {
   longitude: number;
   contactEmail: string;
   contactPhone: string;
+  isVerified?: boolean;
   mapConfig?: Record<string, unknown>;
 }
 
@@ -66,8 +86,10 @@ export interface HospitalListQuery {
   page?: number;
   limit?: number;
   search?: string;
+  stateId?: string;
   cityId?: string;
   type?: HospitalType;
   speciality?: SpecialityType;
   status?: EntityStatus;
+  isVerified?: string;
 }

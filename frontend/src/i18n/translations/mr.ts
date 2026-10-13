@@ -79,6 +79,7 @@ export const mr: typeof en = {
     mainMenu: "मुख्य मेनू",
     staffMenu: "कर्मचारी मेनू",
     dashboard: "डॅशबोर्ड",
+    medicalRecords: "वैद्यकीय नोंदी",
     symptomTriage: "लक्षण ट्राइएज",
     hospitalGuidance: "रुग्णालय मार्गदर्शन",
     myAppointments: "माझ्या अपॉइंटमेंट्स",

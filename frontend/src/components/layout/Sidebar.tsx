@@ -79,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       label: "Hospitals",
       path: "/hospitals",
       icon: <Building2 className="w-5 h-5" />,
-      roles: ["SUPER_ADMIN", "HOSPITAL_ADMIN"],
+      roles: ["SUPER_ADMIN", "HOSPITAL_ADMIN", "PATIENT", "DOCTOR", "RECEPTIONIST"],
     },
     {
       key: "navigation.doctors",

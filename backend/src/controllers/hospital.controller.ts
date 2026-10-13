@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { HospitalService } from "../services/hospital.service";
+import { HospitalImportService } from "../services/hospital-import.service";
+import { AppError } from "../utils/api-error";
 
 const toCreateInput = (body: any) => ({
   name: body.name,
@@ -12,6 +14,7 @@ const toCreateInput = (body: any) => ({
   mapConfig: body.mapConfig,
   contactEmail: body.contactEmail,
   contactPhone: body.contactPhone,
+  isVerified: body.isVerified !== undefined ? Boolean(body.isVerified) : false,
   city: { connect: { id: body.cityId } },
 });
 
@@ -41,19 +44,28 @@ export class HospitalController {
       const page = Math.max(1, Number(req.query.page) || 1);
       const limit = Math.max(1, Number(req.query.limit) || 10);
       const search = typeof req.query.search === "string" ? req.query.search : undefined;
+      const stateId = typeof req.query.stateId === "string" ? req.query.stateId : undefined;
       const cityId = typeof req.query.cityId === "string" ? req.query.cityId : undefined;
       const type = typeof req.query.type === "string" ? (req.query.type as any) : undefined;
       const speciality = typeof req.query.speciality === "string" ? (req.query.speciality as any) : undefined;
       const status = typeof req.query.status === "string" ? (req.query.status as any) : undefined;
+      const isVerified =
+        req.query.isVerified === "true"
+          ? true
+          : req.query.isVerified === "false"
+          ? false
+          : undefined;
 
       const result = await HospitalService.list({
         page,
         limit,
         search,
+        stateId,
         cityId,
         type,
         speciality,
         status,
+        isVerified,
       });
       res.status(200).json({ success: true, data: result });
     } catch (error) {
@@ -108,6 +120,30 @@ export class HospitalController {
       res.status(200).json({
         success: true,
         message: "Hospital deactivated successfully.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async importCsv(req: Request, res: Response, next: NextFunction) {
+    try {
+      const csvContent =
+        typeof req.body?.csvContent === "string"
+          ? req.body.csvContent
+          : typeof req.body === "string"
+          ? req.body
+          : "";
+
+      if (!csvContent || csvContent.trim().length === 0) {
+        throw AppError.badRequest("csvContent string is required.");
+      }
+
+      const result = await HospitalImportService.importFromCsvContent(csvContent);
+      res.status(200).json({
+        success: true,
+        message: `Processed ${result.total} records: ${result.imported} imported, ${result.updated} updated.`,
+        data: result,
       });
     } catch (error) {
       next(error);

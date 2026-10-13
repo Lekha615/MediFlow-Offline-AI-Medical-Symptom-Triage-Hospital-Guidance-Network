@@ -21,7 +21,7 @@ export class DocumentController {
         throw AppError.badRequest("patientId and fileName are required.");
       }
 
-      const uploadedById = req.user?.id || req.body.uploadedById;
+      const uploadedById = (req as any).user?.id || req.body.uploadedById;
       if (!uploadedById) throw AppError.unauthorized("User authentication required.");
 
       const document = await DocumentService.uploadAndProcess({
@@ -49,7 +49,7 @@ export class DocumentController {
 
   static async getByPatient(req: Request, res: Response, next: NextFunction) {
     try {
-      const { patientId } = req.params;
+      const patientId = String(req.params.patientId);
       if (!patientId) throw AppError.badRequest("patientId parameter is required.");
 
       const data = await DocumentService.getByPatientId(patientId);
@@ -65,7 +65,7 @@ export class DocumentController {
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const document = await DocumentService.getById(id);
 
       res.status(200).json({
@@ -79,7 +79,7 @@ export class DocumentController {
 
   static async patientConfirm(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const { extractedData, patientNotes } = req.body;
 
       const document = await DocumentService.patientConfirm(id, extractedData, patientNotes);
@@ -96,9 +96,9 @@ export class DocumentController {
 
   static async doctorVerify(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const id = String(req.params.id);
       const { extractedData, doctorNotes } = req.body;
-      const doctorId = req.user?.id || req.body.doctorId;
+      const doctorId = String((req as any).user?.id || req.body.doctorId || "");
 
       const document = await DocumentService.doctorVerify(
         id,
@@ -119,12 +119,12 @@ export class DocumentController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      const result = await DocumentService.delete(id);
+      const id = String(req.params.id);
+      await DocumentService.delete(id);
 
       res.status(200).json({
         success: true,
-        data: result,
+        message: "Medical document deleted successfully.",
       });
     } catch (error) {
       next(error);

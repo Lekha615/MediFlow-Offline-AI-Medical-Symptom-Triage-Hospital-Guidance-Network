@@ -8,6 +8,9 @@ import {
   Mail,
   Stethoscope,
   ArrowLeft,
+  CheckCircle2,
+  AlertTriangle,
+  Globe,
 } from "lucide-react";
 import { hospitalApi } from "../../api/hospitalApi";
 import { doctorApi } from "../../api/doctorApi";
@@ -15,6 +18,7 @@ import { Badge } from "../../components/common/Badge";
 import { Button } from "../../components/common/Button";
 import { Spinner } from "../../components/common/Spinner";
 import { EmptyState } from "../../components/common/EmptyState";
+import { Doctor } from "../../types/doctor";
 
 export const HospitalDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,15 +50,21 @@ export const HospitalDetailsPage: React.FC = () => {
         title="Hospital Not Found"
         description="The requested medical center could not be found."
         action={
-          <Button variant="outline" onClick={() => navigate("/guidance")}>
-            Back to Hospital Guidance
+          <Button variant="outline" onClick={() => navigate("/hospitals")}>
+            Back to Hospitals Directory
           </Button>
         }
       />
     );
   }
 
-  const doctors = doctorsData?.data || [];
+  const doctors: Doctor[] = Array.isArray(doctorsData?.data)
+    ? doctorsData.data
+    : Array.isArray((doctorsData as any)?.items)
+    ? (doctorsData as any).items
+    : [];
+
+  const isVerified = Boolean(hospital.isVerified);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -84,16 +94,31 @@ export const HospitalDetailsPage: React.FC = () => {
             </p>
           </div>
 
-          <Badge variant={hospital.status.toLowerCase() as any} className="text-sm px-4 py-1.5 self-start sm:self-center">
-            {hospital.status}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            {isVerified ? (
+              <Badge variant="active" className="flex items-center gap-1 text-xs px-3 py-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>VERIFIED REGISTRY</span>
+              </Badge>
+            ) : (
+              <Badge variant="warning" className="flex items-center gap-1 text-xs px-3 py-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                <span>UNVERIFIED RECORD</span>
+              </Badge>
+            )}
+
+            <Badge variant={hospital.status.toLowerCase() as any} className="text-xs px-3 py-1">
+              {hospital.status}
+            </Badge>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10 text-xs text-slate-300">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-white/10 text-xs text-slate-300">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
             <span>
               {hospital.address || "Main Campus"}, {hospital.city?.name || "Metro"}
+              {hospital.city?.state?.name ? `, ${hospital.city.state.name}` : ""}
             </span>
           </div>
 
@@ -110,6 +135,13 @@ export const HospitalDetailsPage: React.FC = () => {
               <span>{hospital.contactEmail}</span>
             </div>
           )}
+
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-teal-400 shrink-0" />
+            <span className="capitalize">
+              {String(hospital.type).toLowerCase()} • {String(hospital.speciality).toLowerCase()}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -128,9 +160,15 @@ export const HospitalDetailsPage: React.FC = () => {
             <Spinner />
           </div>
         ) : doctors.length === 0 ? (
-          <p className="py-8 text-center text-xs text-slate-400">
-            No doctors are currently associated with this medical center in the system.
-          </p>
+          <div className="py-8 text-center space-y-2">
+            <Stethoscope className="w-8 h-8 text-slate-300 mx-auto" />
+            <p className="text-xs text-slate-500 font-medium">
+              No doctors are currently affiliated with this medical center in the system registry.
+            </p>
+            <p className="text-[11px] text-slate-400">
+              Doctor affiliations are strictly verified against the database and never artificially invented.
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {doctors.map((doc) => (
@@ -154,7 +192,12 @@ export const HospitalDetailsPage: React.FC = () => {
                   </div>
 
                   <div className="mt-2 text-xs text-slate-500 space-y-1">
-                    <p>License: <span className="font-mono text-slate-700 dark:text-slate-300 font-semibold">{doc.licenseNumber}</span></p>
+                    <p>
+                      License:{" "}
+                      <span className="font-mono text-slate-700 dark:text-slate-300 font-semibold">
+                        {doc.licenseNumber}
+                      </span>
+                    </p>
                     <p>Qualification: {doc.qualification}</p>
                   </div>
                 </div>

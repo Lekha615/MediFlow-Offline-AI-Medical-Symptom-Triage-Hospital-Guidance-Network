@@ -79,6 +79,7 @@ export const kn: typeof en = {
     mainMenu: "ಮುಖ್ಯ ಮೆನು",
     staffMenu: "ಸಿಬ್ಬಂದಿ ಮೆನು",
     dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    medicalRecords: "ವೈದ್ಯಕೀಯ ದಾಖಲೆಗಳು",
     symptomTriage: "ರೋಗಲಕ್ಷಣ ಟ್ರಯಾಜ್",
     hospitalGuidance: "ಆಸ್ಪತ್ರೆ ಮಾರ್ಗದರ್ಶನ",
     myAppointments: "ನನ್ನ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್‌ಗಳು",

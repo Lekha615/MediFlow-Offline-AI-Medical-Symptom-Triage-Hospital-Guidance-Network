@@ -35,6 +35,20 @@ router.post(
   HospitalController.create
 );
 
+router.post(
+  "/import",
+  authenticate,
+  authorize(...adminRoles),
+  HospitalController.importCsv
+);
+
+router.post(
+  "/import-csv",
+  authenticate,
+  authorize(...adminRoles),
+  HospitalController.importCsv
+);
+
 router.patch(
   "/:id",
   authenticate,

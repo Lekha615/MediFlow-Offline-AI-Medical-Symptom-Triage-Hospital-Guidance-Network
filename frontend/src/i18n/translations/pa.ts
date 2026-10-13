@@ -79,6 +79,7 @@ export const pa: typeof en = {
     mainMenu: "ਮੁੱਖ ਮੇਨੂ",
     staffMenu: "ਸਟਾਫ ਮੇਨੂ",
     dashboard: "ਡੈਸ਼ਬੋਰਡ",
+    medicalRecords: "ਮੈਡੀਕਲ ਰਿਕਾਰਡ",
     symptomTriage: "ਲੱਛਣ ਟ੍ਰਾਈਏਜ",
     hospitalGuidance: "ਹਸਪਤਾਲ ਮਾਰਗਦਰਸ਼ਨ",
     myAppointments: "ਮੇਰੀਆਂ ਅਪਾਇੰਟਮੈਂਟਾਂ",

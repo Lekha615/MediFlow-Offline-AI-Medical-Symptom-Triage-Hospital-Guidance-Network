@@ -79,6 +79,7 @@ export const ml: typeof en = {
     mainMenu: "പ്രധാന മെനു",
     staffMenu: "സ്റ്റാഫ് മെനു",
     dashboard: "ഡാഷ്‌ബോർഡ്",
+    medicalRecords: "മെഡിക്കൽ രേഖകൾ",
     symptomTriage: "ലക്ഷണ പരിശോധന",
     hospitalGuidance: "ആശുപത്രി മാർഗ്ഗനിർദ്ദേശം",
     myAppointments: "എന്റെ അപ്പോയിന്റ്മെന്റുകൾ",

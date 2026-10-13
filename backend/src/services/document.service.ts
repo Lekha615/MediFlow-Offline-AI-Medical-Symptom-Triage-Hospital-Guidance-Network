@@ -89,7 +89,7 @@ export class DocumentService {
     });
 
     // Compute Timeline and Aggregated Clinical Summary
-    const timeline = documents.map((doc) => {
+    const timeline = documents.map((doc: any) => {
       const extracted = doc.extractedData as any;
       return {
         id: doc.id,
@@ -114,7 +114,7 @@ export class DocumentService {
     const allAllergies: any[] = [];
     const allLabResults: any[] = [];
 
-    documents.forEach((doc) => {
+    documents.forEach((doc: any) => {
       const data = doc.extractedData as any;
       if (data?.diseases) allDiseases.push(...data.diseases);
       if (data?.medicines) allMedicines.push(...data.medicines);
@@ -127,8 +127,8 @@ export class DocumentService {
       timeline,
       aggregatedSummary: {
         totalDocuments: documents.length,
-        verifiedCount: documents.filter((d) => d.isVerified).length,
-        needsReviewCount: documents.filter((d) => d.status === "NEEDS_REVIEW").length,
+        verifiedCount: documents.filter((d: any) => d.isVerified).length,
+        needsReviewCount: documents.filter((d: any) => d.status === "NEEDS_REVIEW").length,
         diseases: allDiseases,
         medicines: allMedicines,
         allergies: allAllergies,

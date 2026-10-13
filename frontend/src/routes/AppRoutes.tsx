@@ -231,11 +231,20 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Hospitals Admin Management */}
+      {/* Hospitals Directory & Management */}
       <Route
         path="/hospitals"
         element={
-          <ProtectedRoute allowedRoles={["SUPER_ADMIN", "HOSPITAL_ADMIN"]}>
+          <ProtectedRoute
+            allowedRoles={[
+              "SUPER_ADMIN",
+              "HOSPITAL_ADMIN",
+              "PATIENT",
+              "DOCTOR",
+              "RECEPTIONIST",
+              "LAB_TECHNICIAN",
+            ]}
+          >
             <DashboardLayout>
               <HospitalsListPage />
             </DashboardLayout>

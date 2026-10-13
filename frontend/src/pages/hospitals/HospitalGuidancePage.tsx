@@ -170,7 +170,11 @@ export const HospitalGuidancePage: React.FC = () => {
                         {hospital.name}
                       </h3>
                     </div>
-                    <Badge variant="active">VERIFIED</Badge>
+                    {hospital.isVerified ? (
+                      <Badge variant="active">VERIFIED</Badge>
+                    ) : (
+                      <Badge variant="warning">UNVERIFIED</Badge>
+                    )}
                   </div>
 
                   <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
@@ -178,6 +182,7 @@ export const HospitalGuidancePage: React.FC = () => {
                       <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>
                         {hospital.address || "Main Healthcare Campus"}, {hospital.city?.name || "Metro"}
+                        {hospital.city?.state?.name ? `, ${hospital.city.state.name}` : ""}
                       </span>
                     </div>
 

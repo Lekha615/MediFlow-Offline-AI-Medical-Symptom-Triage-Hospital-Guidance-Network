@@ -1,0 +1,17 @@
+name,code,type,speciality,address,state,stateCode,city,contactEmail,contactPhone,latitude,longitude,isVerified
+AIIMS Raipur,AIIMS-RPR,GOVERNMENT,GENERAL,"GE Road, Tatibandh",Chhattisgarh,CG,Raipur,aiimsrpr@mediflow.gov.in,07712573777,21.2568,81.5794,true
+Dr. B.R. Ambedkar Memorial Hospital,BRAMH-RPR,GOVERNMENT,GENERAL,"Jail Road, Kapa",Chhattisgarh,CG,Raipur,bramh.rpr@mediflow.gov.in,07712890001,21.2500,81.6500,true
+Apollo Hospitals Bilaspur,APOLLO-BSP,PRIVATE,GENERAL,"Rajkishore Nagar, Lingiyadih",Chhattisgarh,CG,Bilaspur,apollo.bsp@mediflow.com,07752407000,22.0910,82.1640,true
+JLN Hospital & Research Centre,JLNH-BHI,GOVERNMENT,GENERAL,"Sector 9",Chhattisgarh,CG,Bhilai,jlnh.bhilai@mediflow.org,07882224001,21.1938,81.3509,true
+Chhattisgarh Eye Hospital,CEH-RPR,PRIVATE,EYE,"Byron Bazar",Chhattisgarh,CG,Raipur,info@cg-eye.com,07714041122,21.2330,81.6370,true
+Shri Shankaracharya Institute of Medical Sciences,SSIMS-BHI,PRIVATE,ALLOPATHY,"Junwani",Chhattisgarh,CG,Bhilai,info@ssims.ac.in,07884088888,21.2180,81.3120,true
+Raipur Dental Clinic & Implant Centre,RDC-RPR,PRIVATE,DENTAL,"Shankar Nagar",Chhattisgarh,CG,Raipur,contact@raipurdental.com,07712445566,21.2480,81.6550,true
+Government Ayurvedic College & Hospital,GACH-RPR,GOVERNMENT,AYURVEDIC,"GE Road",Chhattisgarh,CG,Raipur,ayush.rpr@mediflow.gov.in,07712263000,21.2420,81.6180,true
+Homeopathy Medical Research Hospital,HMRH-BSP,PRIVATE,HOMEOPATHY,"Seepat Road",Chhattisgarh,CG,Bilaspur,hmrh.bsp@mediflow.org,07752251000,22.1000,82.1700,true
+Durg District Hospital,DDH-DURG,GOVERNMENT,GENERAL,"Station Road",Chhattisgarh,CG,Durg,dh.durg@mediflow.gov.in,07882322300,21.1904,81.2849,true
+Korba Super Speciality Hospital,KSSH-KRB,GOVERNMENT,GENERAL,"Transport Nagar",Chhattisgarh,CG,Korba,kssh.korba@mediflow.gov.in,07759245100,22.3595,82.7501,true
+Rajnandgaon Medical College Hospital,RMC-RJN,GOVERNMENT,GENERAL,"Pendri",Chhattisgarh,CG,Rajnandgaon,rmc.rjn@mediflow.gov.in,07744224000,21.0970,81.0360,true
+Bastar District Hospital Jagdalpur,BDH-JGD,GOVERNMENT,GENERAL,"Dharampura",Chhattisgarh,CG,Jagdalpur,dh.jagdalpur@mediflow.gov.in,07782222300,19.0740,82.0120,true
+Raigarh Medical College Hospital,RMCH-RGH,GOVERNMENT,GENERAL,"Bendharchuwa",Chhattisgarh,CG,Raigarh,rmch.raigarh@mediflow.gov.in,07762224500,21.8974,83.3950,true
+Ambikapur Government Medical College,AGMC-AMB,GOVERNMENT,GENERAL,"Surguja",Chhattisgarh,CG,Ambikapur,gmc.ambikapur@mediflow.gov.in,07774223100,23.1180,83.1970,true
+Unverified Community Clinic,UNV-DEMO,PRIVATE,GENERAL,"G.E. Road, Supela",Chhattisgarh,CG,Bhilai,unverified@demo.com,07889999999,21.2000,81.3300,false

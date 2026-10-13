@@ -39,6 +39,12 @@ export class HospitalService {
           where: { status: { not: EntityStatus.DELETED } },
           orderBy: { name: "asc" },
         },
+        doctors: {
+          include: {
+            department: true,
+          },
+          orderBy: [{ isAvailable: "desc" }, { firstName: "asc" }],
+        },
       },
     });
 
@@ -53,17 +59,21 @@ export class HospitalService {
     page: number;
     limit: number;
     search?: string;
+    stateId?: string;
     cityId?: string;
     type?: "GOVERNMENT" | "PRIVATE";
     speciality?: "EYE" | "DENTAL" | "AYURVEDIC" | "HOMEOPATHY" | "ALLOPATHY" | "GENERAL";
     status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "DELETED";
+    isVerified?: boolean;
   }) {
     const page = Math.max(1, Number(params.page) || 1);
     const limit = Math.max(1, Number(params.limit) || 10);
-    const { search, cityId, type, speciality, status } = params;
+    const { search, stateId, cityId, type, speciality, status, isVerified } = params;
+
     const where: Prisma.HospitalWhereInput = {
       status: status ?? { not: EntityStatus.DELETED },
-      ...(cityId ? { cityId } : {}),
+      ...(isVerified !== undefined ? { isVerified } : {}),
+      ...(cityId ? { cityId } : stateId ? { city: { stateId } } : {}),
       ...(type ? { type } : {}),
       ...(speciality ? { speciality } : {}),
       ...(search
@@ -72,6 +82,8 @@ export class HospitalService {
               { name: { contains: search, mode: "insensitive" } },
               { code: { contains: search, mode: "insensitive" } },
               { address: { contains: search, mode: "insensitive" } },
+              { city: { name: { contains: search, mode: "insensitive" } } },
+              { city: { state: { name: { contains: search, mode: "insensitive" } } } },
             ],
           }
         : {}),
@@ -80,8 +92,20 @@ export class HospitalService {
     const [items, total] = await prisma.$transaction([
       prisma.hospital.findMany({
         where,
-        include: { city: { include: { state: true } } },
-        orderBy: { name: "asc" },
+        include: {
+          city: { include: { state: true } },
+          departments: {
+            where: { status: { not: EntityStatus.DELETED } },
+            select: { id: true, name: true, code: true },
+          },
+          _count: {
+            select: {
+              doctors: true,
+              departments: true,
+            },
+          },
+        },
+        orderBy: [{ isVerified: "desc" }, { name: "asc" }],
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -90,6 +114,7 @@ export class HospitalService {
 
     return {
       items,
+      data: items,
       pagination: {
         page,
         limit,
