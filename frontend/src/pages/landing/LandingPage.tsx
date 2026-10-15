@@ -46,7 +46,7 @@ export const LandingPage: React.FC = () => {
           ) : (
             <>
               <Link
-                to="/login"
+                to="/login?mode=PATIENT"
                 className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 transition-colors"
               >
                 Sign In
@@ -124,7 +124,7 @@ export const LandingPage: React.FC = () => {
                   Register Patient Account
                 </Button>
               </Link>
-              <Link to="/login" className="block text-center text-xs font-semibold text-teal-400 hover:underline pt-1">
+              <Link to="/login?mode=PATIENT" className="block text-center text-xs font-semibold text-teal-400 hover:underline pt-1">
                 Already have a patient account? Sign In
               </Link>
             </div>
@@ -166,7 +166,7 @@ export const LandingPage: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t border-slate-800 space-y-2">
-              <Link to="/login">
+              <Link to="/login?mode=STAFF">
                 <Button variant="secondary" size="lg" className="w-full" rightIcon={<ChevronRight className="w-4 h-4" />}>
                   Healthcare Staff Sign In
                 </Button>

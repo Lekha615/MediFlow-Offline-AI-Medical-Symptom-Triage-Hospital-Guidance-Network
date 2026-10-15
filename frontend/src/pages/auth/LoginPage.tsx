@@ -23,7 +23,11 @@ import { getRoleDashboardPath } from "../dashboard/RoleBasedDashboard";
 import { useTranslation } from "../../i18n";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address").trim().toLowerCase(),
+  email: z
+    .string()
+    .email("Please enter a valid email address")
+    .trim()
+    .toLowerCase(),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -36,7 +40,13 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const initialMode = searchParams.get("mode") === "STAFF" ? "STAFF" : "PATIENT";
+  const requestedMode = searchParams.get("mode");
+  const hasExplicitMode =
+    requestedMode === "PATIENT" || requestedMode === "STAFF";
+
+  const initialMode: PortalMode =
+    requestedMode === "STAFF" ? "STAFF" : "PATIENT";
+
   const initialRole = searchParams.get("role") || "DOCTOR";
 
   const [portalMode, setPortalMode] = useState<PortalMode>(initialMode);
@@ -54,12 +64,27 @@ export const LoginPage: React.FC = () => {
 
   const onSubmit = async (values: LoginFormValues) => {
     setErrorMessage(null);
+
     try {
       const loggedUser = await login(values);
-      const roleName = typeof loggedUser.role === "string" ? loggedUser.role : loggedUser.role?.name;
-      const path = getRoleDashboardPath(roleName);
-      navigate(path);
-    } catch (err: any) {
+      const roleName =
+        typeof loggedUser.role === "string"
+          ? loggedUser.role
+          : loggedUser.role?.name;
+
+      // Do not let a portal selection override the actual authenticated role.
+      if (
+        (portalMode === "PATIENT" && roleName !== "PATIENT") ||
+        (portalMode === "STAFF" && roleName === "PATIENT")
+      ) {
+        setErrorMessage(
+          "This account does not belong to the selected portal. Please use the correct portal."
+        );
+        return;
+      }
+
+      navigate(getRoleDashboardPath(roleName));
+    } catch (err: unknown) {
       setErrorMessage(getApiErrorMessage(err));
     }
   };
@@ -102,21 +127,32 @@ export const LoginPage: React.FC = () => {
     },
   ];
 
-  const fillDemoAccount = (acc: typeof demoAccounts[0]) => {
-    setValue("email", acc.email);
-    setValue("password", acc.pass);
-    if (acc.role === "PATIENT") {
+  const visibleDemoAccounts = demoAccounts.filter((account) =>
+    portalMode === "PATIENT"
+      ? account.role === "PATIENT"
+      : account.role !== "PATIENT"
+  );
+
+  const fillDemoAccount = (account: (typeof demoAccounts)[number]) => {
+    setValue("email", account.email);
+    setValue("password", account.pass);
+    setErrorMessage(null);
+
+    if (account.role === "PATIENT") {
       setPortalMode("PATIENT");
     } else {
       setPortalMode("STAFF");
-      setSelectedStaffRole(acc.role);
+      setSelectedStaffRole(account.role);
     }
-    setErrorMessage(null);
   };
 
   return (
     <AuthLayout
-      title={portalMode === "PATIENT" ? t("auth.patientPortal") : t("auth.staffPortal")}
+      title={
+        portalMode === "PATIENT"
+          ? t("auth.patientPortal")
+          : t("auth.staffPortal")
+      }
       subtitle={
         portalMode === "PATIENT"
           ? t("auth.patientPortalSubtitle")
@@ -124,66 +160,68 @@ export const LoginPage: React.FC = () => {
       }
     >
       <div className="space-y-4">
-        {/* Dual Portal Selector Tabs */}
-        <div className="grid grid-cols-2 p-1 rounded-xl bg-slate-800/80 border border-slate-700/80">
-          <button
-            type="button"
-            onClick={() => {
-              setPortalMode("PATIENT");
-              setErrorMessage(null);
-            }}
-            className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-              portalMode === "PATIENT"
-                ? "bg-teal-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>{t("auth.patientPortalTab")}</span>
-          </button>
+        {/* Show tabs only on the generic /login route */}
+        {!hasExplicitMode && (
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-slate-800/80 border border-slate-700/80">
+            <button
+              type="button"
+              onClick={() => {
+                setPortalMode("PATIENT");
+                setErrorMessage(null);
+              }}
+              className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                portalMode === "PATIENT"
+                  ? "bg-teal-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>{t("auth.patientPortalTab")}</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setPortalMode("STAFF");
-              setErrorMessage(null);
-            }}
-            className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-              portalMode === "STAFF"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>{t("auth.staffPortalTab")}</span>
-          </button>
-        </div>
-
-        {/* Quick Demo Credentials Bar */}
-        <div className="space-y-1.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              {t("auth.quickCredentials")}
-            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setPortalMode("STAFF");
+                setErrorMessage(null);
+              }}
+              className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                portalMode === "STAFF"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>{t("auth.staffPortalTab")}</span>
+            </button>
           </div>
+        )}
+
+        {/* Demo credentials filtered for the selected portal */}
+        <div className="space-y-1.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            {t("auth.quickCredentials")}
+          </span>
 
           <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
-            {demoAccounts.map((acc) => (
+            {visibleDemoAccounts.map((account) => (
               <button
-                key={acc.role}
+                key={account.role}
                 type="button"
-                onClick={() => fillDemoAccount(acc)}
+                onClick={() => fillDemoAccount(account)}
                 className="px-2 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700/60 text-[11px] font-semibold text-slate-200 flex items-center gap-1.5 whitespace-nowrap transition-all"
               >
-                {acc.icon}
-                <span>{acc.label}</span>
+                {account.icon}
+                <span>{account.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 pt-1">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-3.5 pt-1"
+        >
           {errorMessage && (
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
@@ -195,7 +233,9 @@ export const LoginPage: React.FC = () => {
             label={t("auth.emailAddress")}
             type="email"
             placeholder={
-              portalMode === "PATIENT" ? "patient@mediflow.com" : "doctor@mediflow.com"
+              portalMode === "PATIENT"
+                ? "patient@mediflow.com"
+                : "doctor@mediflow.com"
             }
             leftIcon={<Mail className="w-4 h-4" />}
             error={errors.email?.message}
@@ -211,6 +251,7 @@ export const LoginPage: React.FC = () => {
               error={errors.password?.message}
               {...register("password")}
             />
+
             <div className="text-right">
               <Link
                 to="/forgot-password"
@@ -232,15 +273,19 @@ export const LoginPage: React.FC = () => {
             isLoading={isSubmitting}
             rightIcon={<ChevronRight className="w-4 h-4" />}
           >
-            {portalMode === "PATIENT" ? t("auth.signInPatientButton") : t("auth.signInStaffButton")}
+            {portalMode === "PATIENT"
+              ? t("auth.signInPatientButton")
+              : t("auth.signInStaffButton")}
           </Button>
 
-          {/* Footer Links & Notices */}
           <div className="text-center mt-5 pt-3 border-t border-slate-700/50 space-y-2 text-xs">
             {portalMode === "PATIENT" ? (
               <p className="text-slate-400">
                 {t("auth.newPatient")}{" "}
-                <Link to="/register" className="text-teal-400 font-semibold hover:underline">
+                <Link
+                  to="/register"
+                  className="text-teal-400 font-semibold hover:underline"
+                >
                   {t("auth.createPatientAccount")}
                 </Link>
               </p>
@@ -249,7 +294,9 @@ export const LoginPage: React.FC = () => {
                 <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-left text-slate-200 flex items-start gap-2.5">
                   <ShieldCheck className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-indigo-300">{t("auth.staffProvisioningTitle")}</p>
+                    <p className="text-xs font-bold text-indigo-300">
+                      {t("auth.staffProvisioningTitle")}
+                    </p>
                     <p className="text-[11px] leading-snug text-slate-300">
                       {t("auth.staffProvisioningDesc")}
                     </p>
@@ -265,7 +312,10 @@ export const LoginPage: React.FC = () => {
                     <span>{t("auth.createStaffAccount")}</span>
                   </Link>
 
-                  <Link to="/register" className="text-slate-400 hover:text-teal-400 font-semibold hover:underline">
+                  <Link
+                    to="/register"
+                    className="text-slate-400 hover:text-teal-400 font-semibold hover:underline"
+                  >
                     {t("auth.patientRegistration")}
                   </Link>
                 </div>

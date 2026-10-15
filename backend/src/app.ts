@@ -10,6 +10,7 @@ import queueRoutes from "./routes/queue.routes";
 import documentRoutes from "./routes/document.routes";
 import locationRoutes from "./routes/location.routes";
 import { LocationController } from "./controllers/location.controller";
+import staffRoutes from "./routes/staff.routes";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/queue", queueRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/locations", locationRoutes);
+app.use("/api/staff", staffRoutes);
 app.get("/api/states", LocationController.getStates);
 app.get("/api/cities", LocationController.getCities);
 
