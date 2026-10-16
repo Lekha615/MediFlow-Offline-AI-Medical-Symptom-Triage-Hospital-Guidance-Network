@@ -11,6 +11,7 @@ import documentRoutes from "./routes/document.routes";
 import locationRoutes from "./routes/location.routes";
 import { LocationController } from "./controllers/location.controller";
 import staffRoutes from "./routes/staff.routes";
+import triageRoutes from "./routes/triage.routes";
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.get("/", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/hospitals", hospitalRoutes);
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/triage", triageRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/queue", queueRoutes);
 app.use("/api/documents", documentRoutes);
