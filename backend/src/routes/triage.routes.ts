@@ -22,7 +22,8 @@ router.post("/", async (req, res) => {
 
   try {
     const mlUrl =
-      process.env.TRIAGE_ML_SERVICE_URL || "http://127.0.0.1:8000";
+    process.env.TRIAGE_ML_SERVICE_URL ||
+"https://mediflow-ml-service.onrender.com";
 
     const response = await fetch(`${mlUrl}/triage`, {
       method: "POST",
